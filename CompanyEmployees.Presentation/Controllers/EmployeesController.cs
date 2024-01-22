@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Service.Contracts;
 using Shared.DataTransferObjects;
@@ -53,14 +54,40 @@ namespace CompanyEmployees.API.Controllers
         }
 
         [HttpPut("{id:guid}")]
-        public IActionResult UpdateEmployeeForCompany(Guid companyId, Guid id, [FromBody] EmployeeForUpdateDto employee)
+        public IActionResult UpdateEmployeeForCompany(Guid companyId, Guid id, [FromBody] EmployeeForUpdateDto employees)
         {
-            if (employee is null)
+            if (employees is null)
                 return BadRequest("EmployeeForUpdateDto object is null");
 
-            _service.EmployeeService.UpdateEmployeeForCompany(companyId, id, employee, compTrackChanges: false, empTrackChanges: true);
+            _service.EmployeeService.UpdateEmployeeForCompany(companyId, id, employees, compTrackChanges: false, empTrackChanges: true);
 
             return NoContent();
+        }
+
+        [HttpPatch("{id:guid}")]
+        public IActionResult PartiallyUpdateEmployeeForCompany(Guid companyId, Guid id, [FromBody] JsonPatchDocument<EmployeeForUpdateDto> patchDoc)
+        {
+            if (patchDoc is null)
+                return BadRequest("patchDoc object send from client is null...");
+
+            var result = _service.EmployeeService.GetEmployeeForPatch(companyId, id, compTrackChanges: false, empTrackChanges: true);
+
+            patchDoc.ApplyTo(result.employeeToPatch);
+
+            _service.EmployeeService.SaveChangesForPatch(result.employeeToPatch, result.employeeEntity);
+
+            return NoContent();
+
+            /* patch object
+             [
+                   {
+                       "op": "replace",
+                       "path": "/age",
+                       "value": "28"
+                   }
+             ]
+             
+             */
         }
     }
 }
