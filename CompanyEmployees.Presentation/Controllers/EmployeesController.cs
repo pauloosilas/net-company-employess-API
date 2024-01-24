@@ -37,13 +37,12 @@ namespace CompanyEmployees.API.Controllers
             if (employee is null)
                 return BadRequest("EmployeeForCreationDto object is null");
 
+            if (!ModelState.IsValid)
+                return UnprocessableEntity(ModelState);
+
             var employeeToReturn = _service.EmployeeService.CreateEmployeeForCompany(companyId, employee, trackChanges: false);
 
-            return CreatedAtRoute("GetEmployeeForCompany", new
-            {
-                companyId,
-                id = employeeToReturn.Id
-            }, employeeToReturn);
+            return CreatedAtRoute("GetEmployeeForCompany", new  {companyId, id = employeeToReturn.Id}, employeeToReturn);
         }
 
         [HttpDelete("{id:guid}")]
