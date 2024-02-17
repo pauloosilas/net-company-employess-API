@@ -1,5 +1,7 @@
 ﻿using Contracts;
+using Entities.Models;
 using LoggerService;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Repository;
 using Service;
@@ -35,9 +37,24 @@ namespace CompanyEmployees.Extensions
             services.AddScoped<IServiceManager, ServiceManager>();
         }
 
-        public static void ConfigureSqlContext(this IServiceCollection services,
-            IConfiguration configuration) =>
-            services.AddSqlServer<RepositoryContext>((configuration.GetConnectionString("sqlConnection")));
+       public static void ConfigureSqlContext(this IServiceCollection services, IConfiguration configuration) =>
+		services.AddDbContext<RepositoryContext>(opts => opts.UseSqlServer(configuration.GetConnectionString("sqlConnection"), b => b.MigrationsAssembly("CompanyEmployees")));
+
+
+        public static void ConfigureIdentity(this IServiceCollection services)
+	{
+		var builder = services.AddIdentity<User, IdentityRole>(o =>
+			{
+				o.Password.RequireDigit = true;
+				o.Password.RequireLowercase = true;
+				o.Password.RequireUppercase = true;
+				o.Password.RequireNonAlphanumeric = false;
+				o.Password.RequiredLength = 10;
+				o.User.RequireUniqueEmail = true;
+			})
+			.AddEntityFrameworkStores<RepositoryContext>()
+			.AddDefaultTokenProviders();
+	}
 
     }
 }

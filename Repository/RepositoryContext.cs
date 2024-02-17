@@ -3,9 +3,11 @@ using Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Repository.Configuration;
 
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+
 namespace Repository
 {
-    public class RepositoryContext : DbContext
+    public class RepositoryContext : IdentityDbContext<User>
     {
         public RepositoryContext(DbContextOptions<RepositoryContext> options) : base(options) { }
 
@@ -15,6 +17,7 @@ namespace Repository
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfiguration(new CompanyConfiguration());
             modelBuilder.ApplyConfiguration(new EmployeeConfiguration());
+            modelBuilder.ApplyConfiguration(new RoleConfiguration());
         }
 
         public DbSet<Company> Companies { get; set; }
